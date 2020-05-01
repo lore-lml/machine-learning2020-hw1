@@ -1,15 +1,13 @@
-from sklearn.datasets import load_wine
-from sklearn.model_selection import train_test_split
-import numpy as np
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
-import seaborn as sns
-from sklearn.svm import SVC
-from matplotlib.colors import ListedColormap
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import ParameterGrid, GridSearchCV
-import matplotlib.pyplot as plt
 from itertools import combinations
+
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 
 K = [1, 3, 5, 7]
 c_range = list(2.**np.arange(-5, 15, 2))
@@ -46,14 +44,13 @@ def svm_rbf_accuracy(X_train, X_test, y_train, y_test):
     return grid.best_params_, accuracy_score(y_test, y_pred)
 
 
-def start_extra_task():
-    dataset = load_wine()
-    y_true = dataset.target
-    comb = list(combinations(range(len(dataset.feature_names)), 2))
+def start_extra_task(data, target, feature_names):
+    y_true = target
+    comb = list(combinations(range(len(feature_names)), 2))
 
     accuracies = {}
     for features in comb[:3]:
-        X = dataset.data[:, features]
+        X = data[:, features]
         X_train, X_test, y_train, y_test = train_test_split(X, y_true, test_size=3/10, random_state=42)
         scaler = StandardScaler()
         X_train = scaler.fit_transform(X_train)
@@ -61,6 +58,7 @@ def start_extra_task():
         args = [X_train, X_test, y_train, y_test]
 
         accuracies[features] = {}
+        accuracies[features]["feature_names"] = (feature_names[features[0]], feature_names[features[1]])
         accuracies[features]["knn"] = knn_accuracy(*args)
         accuracies[features]['svm-linear'] = svm_linear_accuracy(*args)
         accuracies[features]['svm-rbf'] = svm_rbf_accuracy(*args)
@@ -69,6 +67,7 @@ def start_extra_task():
 
 
 if __name__ == '__main__':
-    accuracies = start_extra_task()
+    dataset = load_wine()
+    accuracies = start_extra_task(dataset.data, dataset.target, dataset.feature_names)
     for item in list(accuracies.items()):
         print(item)
