@@ -38,30 +38,31 @@ def svm_rbf_accuracy(X_train, X_test, y_train, y_test):
         "C": c_range,
         "gamma": gamma_range
     }
-    grid = GridSearchCV(SVC(kernel="rbf"), param_grid=params, n_jobs=-1, scoring="accuracy", cv=5)
+    grid = GridSearchCV(SVC(kernel="rbf"), param_grid=params, n_jobs=-2, scoring="accuracy", cv=5)
     grid.fit(X_train, y_train)
     y_pred = grid.predict(X_test)
     return grid.best_params_, accuracy_score(y_test, y_pred)
 
 
-def start_extra_task(data, target, feature_names):
+def start_extra_task(data, target, feature_names, feature_combs=None):
     y_true = target
     comb = list(combinations(range(len(feature_names)), 2))
 
     accuracies = {}
-    for features in comb[:3]:
-        X = data[:, features]
-        X_train, X_test, y_train, y_test = train_test_split(X, y_true, test_size=3/10, random_state=42)
-        scaler = StandardScaler()
-        X_train = scaler.fit_transform(X_train)
-        X_test = scaler.transform(X_test)
-        args = [X_train, X_test, y_train, y_test]
+    for features in comb:
+        if feature_combs is None or features in feature_combs:
+            X = data[:, features]
+            X_train, X_test, y_train, y_test = train_test_split(X, y_true, test_size=3/10, random_state=42)
+            scaler = StandardScaler()
+            X_train = scaler.fit_transform(X_train)
+            X_test = scaler.transform(X_test)
+            args = [X_train, X_test, y_train, y_test]
 
-        accuracies[features] = {}
-        accuracies[features]["feature_names"] = (feature_names[features[0]], feature_names[features[1]])
-        accuracies[features]["knn"] = knn_accuracy(*args)
-        accuracies[features]['svm-linear'] = svm_linear_accuracy(*args)
-        accuracies[features]['svm-rbf'] = svm_rbf_accuracy(*args)
+            accuracies[features] = {}
+            accuracies[features]["feature_names"] = (feature_names[features[0]], feature_names[features[1]])
+            accuracies[features]["knn"] = knn_accuracy(*args)
+            accuracies[features]['svm-linear'] = svm_linear_accuracy(*args)
+            accuracies[features]['svm-rbf'] = svm_rbf_accuracy(*args)
 
     return accuracies
 
